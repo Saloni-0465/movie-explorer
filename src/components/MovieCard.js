@@ -9,11 +9,19 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../utils/theme';
+import { getImageUrl } from '../services/tmdbApi';
 
 const MovieCard = ({ movie, onPress, onFavoritePress, isFavorite = false }) => {
+  if (!movie || (!movie.title && !movie.name)) {
+    return null;
+  }
+
   const imageUrl = movie.poster_path
-    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+    ? getImageUrl(movie.poster_path, 'poster', 'medium')
     : null;
+
+  const title = movie.title || movie.name || '';
+  const releaseDate = movie.release_date || movie.first_air_date;
 
   return (
     <TouchableOpacity
@@ -55,11 +63,11 @@ const MovieCard = ({ movie, onPress, onFavoritePress, isFavorite = false }) => {
       </View>
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={2}>
-          {movie.title || movie.name}
+          {title}
         </Text>
-        {movie.release_date && (
+        {releaseDate && (
           <Text style={styles.date}>
-            {new Date(movie.release_date || movie.first_air_date).getFullYear()}
+            {new Date(releaseDate).getFullYear()}
           </Text>
         )}
       </View>

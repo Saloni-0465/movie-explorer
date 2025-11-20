@@ -6,80 +6,61 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import MovieCard from '../../components/MovieCard';
 import { colors, spacing, typography } from '../../utils/theme';
 import { useSelector, useDispatch } from 'react-redux';
-import { addToFavorites, removeFromFavorites } from '../../store/slices/movieSlice';
-
-// Mock data for trending movies (replace with TMDB API)
-const mockTrendingMovies = [
-  {
-    id: 1,
-    title: 'Inception',
-    release_date: '2010-07-16',
-    poster_path: '/9gk7adHYeDvHkCSEqAvQNLV5Uge.jpg',
-    vote_average: 8.8,
-  },
-  {
-    id: 2,
-    title: 'The Dark Knight',
-    release_date: '2008-07-18',
-    poster_path: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
-    vote_average: 9.0,
-  },
-  {
-    id: 3,
-    title: 'Interstellar',
-    release_date: '2014-11-07',
-    poster_path: '/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
-    vote_average: 8.6,
-  },
-  {
-    id: 4,
-    title: 'Pulp Fiction',
-    release_date: '1994-10-14',
-    poster_path: '/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
-    vote_average: 8.9,
-  },
-  {
-    id: 5,
-    title: 'The Matrix',
-    release_date: '1999-03-31',
-    poster_path: '/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
-    vote_average: 8.7,
-  },
-  {
-    id: 6,
-    title: 'Fight Club',
-    release_date: '1999-10-15',
-    poster_path: '/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg',
-    vote_average: 8.8,
-  },
-];
+import { addToFavorites, removeFromFavorites, setTrendingMovies } from '../../store/slices/movieSlice';
+import { getTrendingMovies } from '../../services/tmdbApi';
 
 const DiscoverScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const favorites = useSelector((state) => state.movie.favorites);
-  const [movies, setMovies] = useState(mockTrendingMovies);
+  const trendingMovies = useSelector((state) => state.movie.trendingMovies);
+  const [movies, setMovies] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState('trending');
 
   useEffect(() => {
-    // In real app, fetch from TMDB API here
-    setMovies(mockTrendingMovies);
+    loadMovies();
   }, []);
 
-  const onRefresh = React.useCallback(() => {
+  const loadMovies = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getTrendingMovies('day');
+      setMovies(data);
+      dispatch(setTrendingMovies(data));
+    } catch (err) {
+      console.error('Error loading movies:', err);
+      setError(err?.message || 'Failed to load movies. Please check your API key.');
+      if (trendingMovies?.length > 0) {
+        setMovies(trendingMovies);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const data = await getTrendingMovies('day');
+      setMovies(data);
+      dispatch(setTrendingMovies(data));
+    } catch (err) {
+      console.error('Error refreshing movies:', err);
+    } finally {
       setRefreshing(false);
-    }, 1000);
-  }, []);
+    }
+  }, [dispatch]);
 
   const handleMoviePress = (movie) => {
     navigation.navigate('MovieDetail', { movie });
@@ -106,15 +87,41 @@ const DiscoverScreen = () => {
     );
   };
 
+  if (loading && movies.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={styles.loadingText}>Loading movies...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (error && movies.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
+          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorSubtext}>
+            Make sure to add your TMDB API key in src/services/tmdbApi.js
+          </Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadMovies}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.headerSection}>
         <Text style={styles.sectionTitle}>Trending Now 🔥</Text>
         <TouchableOpacity
           style={styles.filterButton}
-          onPress={() => {
-            // Navigate to filters screen
-          }}
+          onPress={() => {}}
         >
           <Ionicons name="filter-outline" size={20} color={colors.text} />
         </TouchableOpacity>
@@ -187,6 +194,46 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textSecondary,
     marginTop: spacing.md,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  errorText: {
+    ...typography.h3,
+    color: colors.error,
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
+  errorSubtext: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.accent,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    ...typography.body,
+    color: colors.text,
+    fontWeight: '600',
   },
 });
 
