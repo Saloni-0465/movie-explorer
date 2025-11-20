@@ -17,6 +17,7 @@ A beautiful React Native mobile application for discovering, exploring, and mana
 - **React Native** with Expo
 - **React Navigation** for navigation
 - **Redux Toolkit** for state management
+- **TMDB API** for movie data
 - **AsyncStorage** for local data persistence
 - **Expo Linear Gradient** for beautiful gradients
 - **Ionicons** for icons
@@ -34,12 +35,18 @@ cd movie-explorer
 npm install
 ```
 
-3. Start the development server
+3. **Set up TMDB API Key** (Required for movie data)
+   - Get your free API key from [TMDB](https://www.themoviedb.org/settings/api)
+   - Open `src/services/tmdbApi.js`
+   - Replace `YOUR_TMDB_API_KEY` with your actual API key
+   - See [TMDB_SETUP.md](./TMDB_SETUP.md) for detailed instructions
+
+4. Start the development server
 ```bash
 npm start
 ```
 
-4. Run on iOS/Android
+5. Run on iOS/Android
 ```bash
 npm run ios
 # or
@@ -62,12 +69,15 @@ movie-explorer/
 │   │   ├── auth/         # Authentication screens
 │   │   ├── main/         # Main tab screens
 │   │   └── detail/       # Detail screens
+│   ├── services/         # API services
+│   │   └── tmdbApi.js    # TMDB API integration
 │   ├── store/            # Redux store
 │   │   ├── store.js
 │   │   └── slices/       # Redux slices
 │   └── utils/            # Utilities
 │       ├── theme.js
 │       └── storage.js
+├── TMDB_SETUP.md         # TMDB API setup guide
 └── package.json
 ```
 
@@ -106,14 +116,25 @@ The app uses a consistent theme system with:
 
 All defined in `src/utils/theme.js`
 
+## TMDB API Integration
+
+✅ **Completed**: The app now integrates with TMDB API for real movie data:
+- Trending movies in Discover screen
+- Real-time movie search
+- Full movie details with cast, genres, and trailers
+- High-quality movie posters and backdrops
+
+See [TMDB_SETUP.md](./TMDB_SETUP.md) for setup instructions.
+
 ## Future Enhancements
 
-- Integration with TMDB API for real movie data
 - Firebase/Supabase backend integration
 - Push notifications
 - Social sharing
 - Movie reviews and ratings
 - Advanced filtering and sorting
+- Trailer playback integration
+- Movie recommendations based on user preferences
 
 ## License
 
