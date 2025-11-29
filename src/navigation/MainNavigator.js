@@ -5,22 +5,20 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../utils/theme';
 
-// Auth Screens
 import SplashScreen from '../screens/auth/SplashScreen';
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignupScreen from '../screens/auth/SignupScreen';
 import ProfileSetupScreen from '../screens/auth/ProfileSetupScreen';
 
-// Main Screens
 import DiscoverScreen from '../screens/main/DiscoverScreen';
 import SearchScreen from '../screens/main/SearchScreen';
 import FavoritesScreen from '../screens/main/FavoritesScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 
-// Detail Screens
 import MovieDetailScreen from '../screens/detail/MovieDetailScreen';
 import WatchlistScreen from '../screens/detail/WatchlistScreen';
+import PrivacySecurityScreen from '../screens/main/PrivacySecurityScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -104,7 +102,6 @@ const MainNavigator = () => {
   );
 
   useEffect(() => {
-    // Simulate loading
     setTimeout(() => {
       setIsLoading(false);
     }, 2000);
@@ -139,6 +136,16 @@ const MainNavigator = () => {
               headerStyle: { backgroundColor: colors.background },
               headerTintColor: colors.text,
               title: 'My Watchlist',
+            }}
+          />
+          <Stack.Screen
+            name="PrivacySecurity"
+            component={PrivacySecurityScreen}
+            options={{
+              headerShown: true,
+              headerStyle: { backgroundColor: colors.background },
+              headerTintColor: colors.text,
+              title: 'Privacy & Security',
             }}
           />
         </>

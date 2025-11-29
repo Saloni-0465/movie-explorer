@@ -29,7 +29,6 @@ const ProfileScreen = () => {
   };
 
   const handleDeleteAccount = () => {
-    // Implement delete account logic
     dispatch(logout());
   };
 
@@ -119,7 +118,10 @@ const ProfileScreen = () => {
           <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('PrivacySecurity')}
+        >
           <View style={styles.menuItemLeft}>
             <Ionicons name="shield-checkmark-outline" size={24} color={colors.text} />
             <Text style={styles.menuItemText}>Privacy & Security</Text>
