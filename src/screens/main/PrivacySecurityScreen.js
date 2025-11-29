@@ -27,7 +27,7 @@ const PrivacySecurityScreen = () => {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemText}>Data Sharing</Text>
               <Text style={styles.menuItemSubtext}>
-                Allow sharing anonymous usage data to improve the app
+                Share anonymous usage data
               </Text>
             </View>
           </View>
@@ -45,7 +45,7 @@ const PrivacySecurityScreen = () => {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemText}>Analytics</Text>
               <Text style={styles.menuItemSubtext}>
-                Help us understand how you use the app
+                Track app usage
               </Text>
             </View>
           </View>
@@ -63,7 +63,7 @@ const PrivacySecurityScreen = () => {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemText}>Location Services</Text>
               <Text style={styles.menuItemSubtext}>
-                Use location for personalized recommendations
+                Location-based recommendations
               </Text>
             </View>
           </View>
@@ -85,7 +85,7 @@ const PrivacySecurityScreen = () => {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemText}>Biometric Authentication</Text>
               <Text style={styles.menuItemSubtext}>
-                Use fingerprint or face ID to unlock the app
+                Fingerprint or face ID
               </Text>
             </View>
           </View>
@@ -103,7 +103,7 @@ const PrivacySecurityScreen = () => {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemText}>Change Password</Text>
               <Text style={styles.menuItemSubtext}>
-                Update your account password
+                Update password
               </Text>
             </View>
           </View>
@@ -116,7 +116,7 @@ const PrivacySecurityScreen = () => {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemText}>Two-Factor Authentication</Text>
               <Text style={styles.menuItemSubtext}>
-                Add an extra layer of security
+                Extra security layer
               </Text>
             </View>
           </View>
@@ -133,7 +133,7 @@ const PrivacySecurityScreen = () => {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemText}>Download Your Data</Text>
               <Text style={styles.menuItemSubtext}>
-                Get a copy of your account data
+                Export account data
               </Text>
             </View>
           </View>
@@ -146,7 +146,7 @@ const PrivacySecurityScreen = () => {
             <View style={styles.menuItemTextContainer}>
               <Text style={styles.menuItemText}>Clear Cache</Text>
               <Text style={styles.menuItemSubtext}>
-                Remove cached data and temporary files
+                Remove cached files
               </Text>
             </View>
           </View>
@@ -157,7 +157,7 @@ const PrivacySecurityScreen = () => {
       <View style={styles.infoSection}>
         <Ionicons name="information-circle-outline" size={24} color={colors.accent} />
         <Text style={styles.infoText}>
-          Your privacy is important to us. We never sell your personal data and only use it to improve your experience.
+          We don't sell your data. It's only used to improve the app.
         </Text>
       </View>
     </ScrollView>

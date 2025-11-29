@@ -6,7 +6,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity,
+  TouchableOpacity, 
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -50,7 +50,6 @@ const LoginScreen = () => {
           favoriteGenres: [],
         })
       );
-      // Navigation will be handled by MainNavigator based on auth state
     }
   };
 

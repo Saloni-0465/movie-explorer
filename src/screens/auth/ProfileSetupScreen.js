@@ -36,7 +36,6 @@ const ProfileSetupScreen = () => {
   const handleComplete = () => {
     dispatch(updateProfile({ favoriteGenres: selectedGenres }));
     dispatch(setOnboardingComplete());
-    // Navigation will be handled by MainNavigator
   };
 
   return (
