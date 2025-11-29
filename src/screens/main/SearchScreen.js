@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,16 +6,15 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import MovieCard from '../../components/MovieCard';
 import { colors, spacing, typography, borderRadius } from '../../utils/theme';
 import { useSelector, useDispatch } from 'react-redux';
-import { addToFavorites, removeFromFavorites } from '../../store/slices/movieSlice';
-
-// Mock search results
-const mockSearchResults = [];
+import { addToFavorites, removeFromFavorites, setSearchResults as setSearchResultsAction } from '../../store/slices/movieSlice';
+import { searchMovies } from '../../services/tmdbApi';
 
 const SearchScreen = () => {
   const navigation = useNavigation();
@@ -24,21 +23,47 @@ const SearchScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState(null);
+  const searchTimeoutRef = useRef(null);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
-    if (query.trim().length > 2) {
-      setIsSearching(true);
-      // Simulate API call
-      setTimeout(() => {
-        // In real app, fetch from TMDB API
-        setSearchResults([]);
-        setIsSearching(false);
-      }, 500);
-    } else {
-      setSearchResults([]);
+    setError(null);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
+
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const results = await searchMovies(query.trim());
+        setSearchResults(results);
+        dispatch(setSearchResultsAction(results));
+      } catch (err) {
+        console.error('Error searching movies:', err);
+        setError('Failed to search movies. Please check your API key.');
+        setSearchResults([]);
+        dispatch(setSearchResultsAction([]));
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500);
   };
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleMoviePress = (movie) => {
     navigation.navigate('MovieDetail', { movie });
@@ -83,6 +108,7 @@ const SearchScreen = () => {
               onPress={() => {
                 setSearchQuery('');
                 setSearchResults([]);
+                dispatch(setSearchResultsAction([]));
               }}
             >
               <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
@@ -93,18 +119,34 @@ const SearchScreen = () => {
 
       {isSearching ? (
         <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.centerText}>Searching...</Text>
         </View>
+      ) : error ? (
+        <View style={styles.centerContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
+          <Text style={styles.centerText}>{error}</Text>
+          <Text style={styles.centerSubtext}>
+            Make sure to add your TMDB API key in src/services/tmdbApi.js
+          </Text>
+        </View>
       ) : searchResults.length > 0 ? (
-        <FlatList
-          data={searchResults}
-          renderItem={renderMovie}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
-          contentContainerStyle={styles.listContent}
-          columnWrapperStyle={styles.row}
-          showsVerticalScrollIndicator={false}
-        />
+        <>
+          <View style={styles.resultsHeader}>
+            <Text style={styles.resultsText}>
+              {searchResults.length} {searchResults.length === 1 ? 'result' : 'results'} found
+            </Text>
+          </View>
+          <FlatList
+            data={searchResults}
+            renderItem={renderMovie}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={2}
+            contentContainerStyle={styles.listContent}
+            columnWrapperStyle={styles.row}
+            showsVerticalScrollIndicator={false}
+          />
+        </>
       ) : searchQuery.length > 2 ? (
         <View style={styles.centerContainer}>
           <Ionicons name="search-outline" size={64} color={colors.textSecondary} />
@@ -175,6 +217,14 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.sm,
     textAlign: 'center',
+  },
+  resultsHeader: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  resultsText: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
   },
 });
 
