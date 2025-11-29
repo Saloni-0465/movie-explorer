@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,6 +16,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import Button from '../../components/Button';
 import { colors, spacing, typography, borderRadius } from '../../utils/theme';
 import { addToFavorites, removeFromFavorites, addToWatchlist, removeFromWatchlist } from '../../store/slices/movieSlice';
+import { getMovieDetails, getImageUrl } from '../../services/tmdbApi';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -22,15 +24,39 @@ const MovieDetailScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { movie } = route.params || {};
+  const { movie: initialMovie } = route.params || {};
   
   const favorites = useSelector((state) => state.movie.favorites);
   const watchlist = useSelector((state) => state.movie.watchlist);
   
+  const [movie, setMovie] = useState(initialMovie);
+  const [loading, setLoading] = useState(!!initialMovie?.id);
+  const [error, setError] = useState(null);
+  
   const isFavorite = favorites.some((fav) => fav.id === movie?.id);
   const isInWatchlist = watchlist.some((item) => item.id === movie?.id);
 
-  if (!movie) {
+  useEffect(() => {
+    if (initialMovie?.id) {
+      loadMovieDetails();
+    }
+  }, [initialMovie?.id]);
+
+  const loadMovieDetails = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getMovieDetails(initialMovie.id);
+      setMovie(data);
+    } catch (err) {
+      console.error('Error loading movie details:', err);
+      setError('Failed to load movie details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!initialMovie && !movie) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Movie not found</Text>
@@ -38,12 +64,37 @@ const MovieDetailScreen = () => {
     );
   }
 
-  const imageUrl = movie.poster_path
-    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (error && !movie) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={loadMovieDetails}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  const imageUrl = movie?.poster_path
+    ? getImageUrl(movie.poster_path, 'poster', 'large')
     : null;
 
-  const backdropUrl = movie.backdrop_path
-    ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`
+  const backdropUrl = movie?.backdrop_path
+    ? getImageUrl(movie.backdrop_path, 'backdrop', 'large')
     : null;
 
   const handleFavorite = () => {
@@ -153,14 +204,21 @@ const MovieDetailScreen = () => {
             </TouchableOpacity>
           </View>
 
-          <Button
-            title="▶ Watch Trailer"
-            variant="primary"
-            style={styles.trailerButton}
-            onPress={() => {
-              // Navigate to trailer screen or open YouTube
-            }}
-          />
+          {movie.videos?.results && movie.videos.results.length > 0 && (
+            <Button
+              title="▶ Watch Trailer"
+              variant="primary"
+              style={styles.trailerButton}
+              onPress={() => {
+                const trailer = movie.videos.results.find(
+                  (video) => video.type === 'Trailer' && video.site === 'YouTube'
+                );
+                if (trailer) {
+                  console.log('Trailer URL:', `https://www.youtube.com/watch?v=${trailer.key}`);
+                }
+              }}
+            />
+          )}
 
           {movie.overview && (
             <View style={styles.section}>
@@ -169,15 +227,15 @@ const MovieDetailScreen = () => {
             </View>
           )}
 
-          {movie.cast && movie.cast.length > 0 && (
+          {movie.credits?.cast && movie.credits.cast.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Cast</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {movie.cast.map((actor) => (
+                {movie.credits.cast.slice(0, 10).map((actor) => (
                   <View key={actor.id} style={styles.castItem}>
                     {actor.profile_path ? (
                       <Image
-                        source={{ uri: `https://image.tmdb.org/t/p/w200${actor.profile_path}` }}
+                        source={{ uri: getImageUrl(actor.profile_path, 'profile', 'medium') }}
                         style={styles.castImage}
                       />
                     ) : (
@@ -185,7 +243,12 @@ const MovieDetailScreen = () => {
                         <Ionicons name="person-outline" size={24} color={colors.textSecondary} />
                       </View>
                     )}
-                    <Text style={styles.castName}>{actor.name}</Text>
+                    <Text style={styles.castName} numberOfLines={2}>{actor.name}</Text>
+                    {actor.character && (
+                      <Text style={styles.castCharacter} numberOfLines={1}>
+                        {actor.character}
+                      </Text>
+                    )}
                   </View>
                 ))}
               </ScrollView>
@@ -375,6 +438,41 @@ const styles = StyleSheet.create({
     color: colors.error,
     textAlign: 'center',
     marginTop: spacing.xxl,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  retryButton: {
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.accent,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    ...typography.body,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  castCharacter: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 2,
   },
 });
 
