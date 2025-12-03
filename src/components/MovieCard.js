@@ -20,7 +20,7 @@ const MovieCard = ({ movie, onPress, onFavoritePress, isFavorite = false }) => {
     ? getImageUrl(movie.poster_path, 'poster', 'medium')
     : null;
 
-  const title = movie.title || movie.name || '';
+  const title = movie.title || movie.name || 'Untitled';
   const releaseDate = movie.release_date || movie.first_air_date;
 
   return (
@@ -54,7 +54,7 @@ const MovieCard = ({ movie, onPress, onFavoritePress, isFavorite = false }) => {
             color={isFavorite ? colors.accent : '#fff'}
           />
         </TouchableOpacity>
-        {movie.vote_average && (
+        {movie.vote_average != null && typeof movie.vote_average === 'number' && (
           <View style={styles.rating}>
             <Ionicons name="star" size={14} color="#ffd700" />
             <Text style={styles.ratingText}>{movie.vote_average.toFixed(1)}</Text>
@@ -63,7 +63,7 @@ const MovieCard = ({ movie, onPress, onFavoritePress, isFavorite = false }) => {
       </View>
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={2}>
-          {title}
+          {String(title)}
         </Text>
         {releaseDate && (
           <Text style={styles.date}>
