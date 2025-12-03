@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  Linking,
+  Alert,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -209,12 +211,22 @@ const MovieDetailScreen = () => {
               title="▶ Watch Trailer"
               variant="primary"
               style={styles.trailerButton}
-              onPress={() => {
+              onPress={async () => {
                 const trailer = movie.videos.results.find(
                   (video) => video.type === 'Trailer' && video.site === 'YouTube'
                 );
                 if (trailer) {
-                  console.log('Trailer URL:', `https://www.youtube.com/watch?v=${trailer.key}`);
+                  const url = `https://www.youtube.com/watch?v=${trailer.key}`;
+                  try {
+                    const supported = await Linking.canOpenURL(url);
+                    if (supported) {
+                      await Linking.openURL(url);
+                    } else {
+                      Alert.alert('Error', 'Cannot open YouTube. Please check if YouTube app is installed.');
+                    }
+                  } catch (error) {
+                    Alert.alert('Error', 'Failed to open trailer');
+                  }
                 }
               }}
             />
