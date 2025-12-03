@@ -36,11 +36,12 @@ const DiscoverScreen = () => {
       setLoading(true);
       setError(null);
       const data = await getTrendingMovies('day');
-      setMovies(data);
-      dispatch(setTrendingMovies(data));
+      const validMovies = data.filter(movie => movie && (movie.title || movie.name) && movie.id);
+      setMovies(validMovies);
+      dispatch(setTrendingMovies(validMovies));
     } catch (err) {
       console.error('Error loading movies:', err);
-      setError(err?.message || 'Failed to load movies. Please check your API key.');
+      setError(err?.message || 'Failed to load movies');
       if (trendingMovies?.length > 0) {
         setMovies(trendingMovies);
       }
@@ -53,8 +54,9 @@ const DiscoverScreen = () => {
     setRefreshing(true);
     try {
       const data = await getTrendingMovies('day');
-      setMovies(data);
-      dispatch(setTrendingMovies(data));
+      const validMovies = data.filter(movie => movie && (movie.title || movie.name) && movie.id);
+      setMovies(validMovies);
+      dispatch(setTrendingMovies(validMovies));
     } catch (err) {
       console.error('Error refreshing movies:', err);
     } finally {
