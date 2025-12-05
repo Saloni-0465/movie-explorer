@@ -7,6 +7,9 @@ import MainNavigator from './src/navigation/MainNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, ActivityIndicator } from 'react-native';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './src/services/firebase';
+import { getUserData } from './src/services/authService';
 import { loadPersistedState } from './src/store/persistence';
 import { login, logout, setOnboardingComplete } from './src/store/slices/authSlice';
 import { addToFavorites, addToWatchlist } from './src/store/slices/movieSlice';
@@ -17,26 +20,28 @@ const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadData = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
-        const persistedState = await loadPersistedState();
-
-        if (persistedState?.auth?.uid) {
+        if (firebaseUser) {
+          const userData = await getUserData(firebaseUser.uid);
+          
           dispatch(
             login({
-              uid: persistedState.auth.uid,
-              email: persistedState.auth.email,
-              name: persistedState.auth.name,
-              favoriteGenres: persistedState.auth.favoriteGenres || [],
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              name: userData?.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0],
+              favoriteGenres: userData?.favoriteGenres || [],
             })
           );
-          if (persistedState.auth.hasCompletedOnboarding) {
+          
+          if (userData?.hasCompletedOnboarding) {
             dispatch(setOnboardingComplete());
           }
         } else {
           dispatch(logout());
         }
 
+        const persistedState = await loadPersistedState();
         if (persistedState?.movie) {
           if (Array.isArray(persistedState.movie.favorites)) {
             persistedState.movie.favorites.forEach((movie) => dispatch(addToFavorites(movie)));
@@ -46,13 +51,12 @@ const AppContent = () => {
           }
         }
       } catch (error) {
-        console.error('Error loading persisted state:', error);
       } finally {
         setIsLoading(false);
       }
-    };
+    });
 
-    loadData();
+    return () => unsubscribe();
   }, [dispatch]);
 
   if (isLoading) {

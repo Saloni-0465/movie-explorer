@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../utils/theme';
 
@@ -24,14 +25,22 @@ import PrivacySecurityScreen from '../screens/main/PrivacySecurityScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const AuthStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Welcome" component={WelcomeScreen} />
-    <Stack.Screen name="Login" component={LoginScreen} />
-    <Stack.Screen name="Signup" component={SignupScreen} />
-    <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
-  </Stack.Navigator>
-);
+const AuthStack = () => {
+  const route = useRoute();
+  const initialRouteName = route.params?.initialRouteName || 'Welcome';
+  
+  return (
+    <Stack.Navigator 
+      screenOptions={{ headerShown: false }}
+      initialRouteName={initialRouteName}
+    >
+      <Stack.Screen name="Welcome" component={WelcomeScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
+    </Stack.Navigator>
+  );
+};
 
 const MainTabs = () => (
   <Tab.Navigator
@@ -115,7 +124,15 @@ const MainNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {!isAuthenticated || !hasCompletedOnboarding ? (
-        <Stack.Screen name="Auth" component={AuthStack} />
+        <Stack.Screen 
+          name="Auth" 
+          component={AuthStack}
+          initialParams={{ 
+            initialRouteName: isAuthenticated && !hasCompletedOnboarding 
+              ? 'ProfileSetup' 
+              : 'Welcome' 
+          }}
+        />
       ) : (
         <>
           <Stack.Screen name="MainTabs" component={MainTabs} />

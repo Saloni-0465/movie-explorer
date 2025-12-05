@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Button from '../../components/Button';
 import { colors, spacing, typography, borderRadius } from '../../utils/theme';
 import { logout } from '../../store/slices/authSlice';
+import { logOut } from '../../services/authService';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -24,8 +25,13 @@ const ProfileScreen = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(true);
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    try {
+      await logOut();
+      dispatch(logout());
+    } catch (error) {
+      dispatch(logout());
+    }
   };
 
   const handleDeleteAccount = () => {

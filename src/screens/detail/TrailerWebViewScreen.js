@@ -27,12 +27,8 @@ const TrailerWebViewScreen = () => {
 
       try {
         setOpening(true);
-        // Use YouTube watch URL (works better with expo-web-browser)
         const watchUrl = `https://www.youtube.com/watch?v=${videoKey}`;
         
-        console.log('Opening trailer URL:', watchUrl);
-        
-        // Open in in-app browser
         await WebBrowser.openBrowserAsync(watchUrl, {
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULLSCREEN,
           controlsColor: colors.accent,
@@ -42,26 +38,20 @@ const TrailerWebViewScreen = () => {
           enableDefaultShare: false,
         });
         
-        // Browser closed, navigate back
         setOpening(false);
         navigation.goBack();
       } catch (error) {
-        console.error('Error opening browser:', error);
         setOpening(false);
-        // Still navigate back even on error
         setTimeout(() => navigation.goBack(), 500);
       }
     };
 
-    // Open immediately when component mounts
     openTrailer();
   }, [videoKey, navigation]);
 
-  // Navigate back if screen loses focus (browser opened)
   useFocusEffect(
     React.useCallback(() => {
       return () => {
-        // Screen is losing focus, browser likely opened
         setOpening(false);
       };
     }, [])

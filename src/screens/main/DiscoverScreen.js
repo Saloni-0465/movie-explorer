@@ -40,7 +40,6 @@ const DiscoverScreen = () => {
       setMovies(validMovies);
       dispatch(setTrendingMovies(validMovies));
     } catch (err) {
-      console.error('Error loading movies:', err);
       setError(err?.message || 'Failed to load movies');
       if (trendingMovies?.length > 0) {
         setMovies(trendingMovies);
@@ -58,7 +57,6 @@ const DiscoverScreen = () => {
       setMovies(validMovies);
       dispatch(setTrendingMovies(validMovies));
     } catch (err) {
-      console.error('Error refreshing movies:', err);
     } finally {
       setRefreshing(false);
     }

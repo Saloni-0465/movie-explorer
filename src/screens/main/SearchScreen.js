@@ -47,7 +47,6 @@ const SearchScreen = () => {
         setSearchResults(results);
         dispatch(setSearchResultsAction(results));
       } catch (err) {
-        console.error('Error searching movies:', err);
         setError('Failed to search movies. Please check your API key.');
         setSearchResults([]);
         dispatch(setSearchResultsAction([]));

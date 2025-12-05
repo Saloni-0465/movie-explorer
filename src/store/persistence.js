@@ -23,7 +23,6 @@ export const loadPersistedState = async () => {
       },
     };
   } catch (error) {
-    console.error('Error loading persisted state:', error);
     return null;
   }
 };
@@ -36,7 +35,7 @@ export const persistenceMiddleware = (store) => (next) => (action) => {
     if (action.type === 'auth/login' || action.type === 'auth/updateProfile') {
       storage.setItem(StorageKeys.USER_DATA, {
         user: state.auth.user,
-        uid: state.auth.uid,
+        uid: state.auth.user?.uid || null,
         isAuthenticated: state.auth.isAuthenticated,
         hasCompletedOnboarding: state.auth.hasCompletedOnboarding,
       });
@@ -47,7 +46,7 @@ export const persistenceMiddleware = (store) => (next) => (action) => {
     } else if (action.type === 'auth/setOnboardingComplete') {
       storage.setItem(StorageKeys.USER_DATA, {
         user: state.auth.user,
-        uid: state.auth.uid,
+        uid: state.auth.user?.uid || null,
         isAuthenticated: state.auth.isAuthenticated,
         hasCompletedOnboarding: true,
       });

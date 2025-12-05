@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Button from '../../components/Button';
 import { colors, spacing, typography, borderRadius } from '../../utils/theme';
 import { setOnboardingComplete, updateProfile } from '../../store/slices/authSlice';
@@ -23,6 +23,7 @@ const genres = [
 const ProfileSetupScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
   const [selectedGenres, setSelectedGenres] = useState([]);
 
   const toggleGenre = (genre) => {
@@ -33,8 +34,20 @@ const ProfileSetupScreen = () => {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     dispatch(updateProfile({ favoriteGenres: selectedGenres }));
+    
+    if (user?.uid) {
+      try {
+        const { updateUserProfile } = await import('../../services/authService');
+        await updateUserProfile(user.uid, {
+          favoriteGenres: selectedGenres,
+          hasCompletedOnboarding: true,
+        });
+      } catch (error) {
+      }
+    }
+    
     dispatch(setOnboardingComplete());
   };
 

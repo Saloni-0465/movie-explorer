@@ -7,19 +7,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { colors, spacing, typography } from '../../utils/theme';
-import { login } from '../../store/slices/authSlice';
+import { signUp } from '../../services/authService';
 
 const SignupScreen = () => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,6 +27,7 @@ const SignupScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -52,16 +53,31 @@ const SignupScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignup = () => {
-    if (validate()) {
-      dispatch(
-        login({
-          email,
-          name,
-          favoriteGenres: [],
-        })
-      );
-      navigation.navigate('ProfileSetup');
+  const handleSignup = async () => {
+    if (!validate()) return;
+
+    setLoading(true);
+    setErrors({});
+
+    try {
+      await signUp(email, password, name);
+    } catch (error) {
+      let errorMessage = 'Sign up failed. Please try again.';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already registered. Please login instead.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak. Please use a stronger password.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert('Sign Up Error', errorMessage);
+      setLoading(false);
     }
   };
 
@@ -135,10 +151,18 @@ const SignupScreen = () => {
               />
 
               <Button
-                title="Sign Up"
+                title={loading ? 'Creating account...' : 'Sign Up'}
                 onPress={handleSignup}
                 style={styles.signupButton}
+                disabled={loading}
               />
+              {loading && (
+                <ActivityIndicator
+                  size="small"
+                  color={colors.accent}
+                  style={styles.loader}
+                />
+              )}
 
               <View style={styles.socialLogin}>
                 <Text style={styles.socialText}>Or sign up with</Text>
@@ -238,6 +262,9 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.accent,
     fontWeight: '600',
+  },
+  loader: {
+    marginTop: spacing.sm,
   },
 });
 

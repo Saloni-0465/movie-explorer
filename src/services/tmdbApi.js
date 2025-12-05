@@ -46,7 +46,6 @@ const apiRequest = async (endpoint, params = {}) => {
         errorMessage = errorData.status_message;
       }
     } catch (e) {
-      // ignore
     }
     throw new Error(errorMessage);
   }

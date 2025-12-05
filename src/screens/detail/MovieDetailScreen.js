@@ -51,7 +51,6 @@ const MovieDetailScreen = () => {
       const data = await getMovieDetails(initialMovie.id);
       setMovie(data);
     } catch (err) {
-      console.error('Error loading movie details:', err);
       setError('Failed to load movie details');
     } finally {
       setLoading(false);

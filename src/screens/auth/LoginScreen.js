@@ -6,7 +6,9 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  TouchableOpacity, 
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +18,7 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { colors, spacing, typography } from '../../utils/theme';
 import { login } from '../../store/slices/authSlice';
+import { signIn, resetPassword } from '../../services/authService';
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -24,6 +27,7 @@ const LoginScreen = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -41,15 +45,35 @@ const LoginScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = () => {
-    if (validate()) {
-      dispatch(
-        login({
-          email,
-          name: email.split('@')[0],
-          favoriteGenres: [],
-        })
-      );
+  const handleLogin = async () => {
+    if (!validate()) return;
+
+    setLoading(true);
+    setErrors({});
+
+    try {
+      const userData = await signIn(email, password);
+      dispatch(login(userData));
+    } catch (error) {
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email address.';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert('Login Error', errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -101,15 +125,37 @@ const LoginScreen = () => {
                 error={errors.password}
               />
 
-              <TouchableOpacity style={styles.forgotPassword}>
+              <TouchableOpacity
+                style={styles.forgotPassword}
+                onPress={async () => {
+                  if (!email.trim()) {
+                    Alert.alert('Email Required', 'Please enter your email address first.');
+                    return;
+                  }
+                  try {
+                    await resetPassword(email);
+                    Alert.alert('Success', 'Password reset email sent. Please check your inbox.');
+                  } catch (error) {
+                    Alert.alert('Error', 'Failed to send reset email. Please try again.');
+                  }
+                }}
+              >
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </TouchableOpacity>
 
               <Button
-                title="Login"
+                title={loading ? 'Logging in...' : 'Login'}
                 onPress={handleLogin}
                 style={styles.loginButton}
+                disabled={loading}
               />
+              {loading && (
+                <ActivityIndicator
+                  size="small"
+                  color={colors.accent}
+                  style={styles.loader}
+                />
+              )}
 
               <View style={styles.socialLogin}>
                 <Text style={styles.socialText}>Or login with</Text>
@@ -216,6 +262,9 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.accent,
     fontWeight: '600',
+  },
+  loader: {
+    marginTop: spacing.sm,
   },
 });
 

@@ -13,7 +13,6 @@ export const storage = {
       const item = await AsyncStorage.getItem(key);
       return item ? JSON.parse(item) : null;
     } catch (error) {
-      console.error('Error reading from storage:', error);
       return null;
     }
   },
@@ -22,7 +21,6 @@ export const storage = {
     try {
       await AsyncStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error('Error writing to storage:', error);
     }
   },
 
@@ -30,7 +28,6 @@ export const storage = {
     try {
       await AsyncStorage.removeItem(key);
     } catch (error) {
-      console.error('Error removing from storage:', error);
     }
   },
 
@@ -38,7 +35,6 @@ export const storage = {
     try {
       await AsyncStorage.clear();
     } catch (error) {
-      console.error('Error clearing storage:', error);
     }
   },
 };
