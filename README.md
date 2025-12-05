@@ -1,142 +1,62 @@
-# Movie Explorer App 🎬
+# Movie Explorer
 
-A beautiful React Native mobile application for discovering, exploring, and managing your favorite movies and TV shows.
+React Native app for browsing movies and TV shows. Built with Expo.
 
-## Features
+## Getting Started
 
-- 🔐 **Authentication**: Sign up, login, and profile setup
-- 🎯 **Personalization**: Select favorite genres for personalized recommendations
-- 🔍 **Discovery**: Browse trending movies and TV shows
-- 🔎 **Search**: Search movies, actors, and genres
-- ⭐ **Favorites**: Save your favorite movies
-- 📽️ **Watchlist**: Create a personal watchlist
-- 👤 **Profile**: Manage your account and preferences
+Clone the repo and install dependencies:
 
-## Tech Stack
-
-- **React Native** with Expo
-- **React Navigation** for navigation
-- **Redux Toolkit** for state management
-- **TMDB API** for movie data
-- **AsyncStorage** for local data persistence
-- **Expo Linear Gradient** for beautiful gradients
-- **Ionicons** for icons
-
-## Installation
-
-1. Clone the repository
 ```bash
 git clone <repository-url>
 cd movie-explorer
-```
-
-2. Install dependencies
-```bash
 npm install
 ```
 
-3. **Set up TMDB API Key** (Required for movie data)
-   - Get your free API key from [TMDB](https://www.themoviedb.org/settings/api)
-   - Open `src/services/tmdbApi.js`
-   - Replace `YOUR_TMDB_API_KEY` with your actual API key
-   - See [TMDB_SETUP.md](./TMDB_SETUP.md) for detailed instructions
+You'll need a TMDB API key to fetch movie data. Get one from [TMDB](https://www.themoviedb.org/settings/api) and add it to `src/services/tmdbApi.js`. Check `TMDB_SETUP.md` for details.
 
-4. Start the development server
+For Firebase auth, set up your `.env` file with Firebase credentials. See `FIREBASE_SETUP_COMPLETE.md` for instructions.
+
+Run the app:
+
 ```bash
 npm start
 ```
 
-5. Run on iOS/Android
-```bash
-npm run ios
-# or
-npm run android
+Then press `i` for iOS or `a` for Android.
+
+## What's Included
+
+- User authentication with Firebase
+- Browse trending movies
+- Search movies
+- Save favorites and watchlist
+- Movie details with trailers
+- Profile management
+
+## Tech Used
+
+- React Native / Expo
+- React Navigation
+- Redux Toolkit
+- Firebase (Auth & Firestore)
+- TMDB API
+- AsyncStorage
+
+## Project Layout
+
 ```
-
-## Project Structure
-
+src/
+├── components/     # Button, Input, MovieCard
+├── navigation/     # MainNavigator
+├── screens/        # All screen components
+│   ├── auth/      # Login, Signup, ProfileSetup
+│   ├── main/      # Discover, Search, Favorites, Profile
+│   └── detail/     # MovieDetail, Watchlist
+├── services/       # Firebase, TMDB API
+├── store/          # Redux store and slices
+└── utils/          # Theme, storage helpers
 ```
-movie-explorer/
-├── App.js                 # Main app entry point
-├── src/
-│   ├── components/        # Reusable UI components
-│   │   ├── Button.js
-│   │   ├── Input.js
-│   │   └── MovieCard.js
-│   ├── navigation/        # Navigation configuration
-│   │   └── MainNavigator.js
-│   ├── screens/          # Screen components
-│   │   ├── auth/         # Authentication screens
-│   │   ├── main/         # Main tab screens
-│   │   └── detail/       # Detail screens
-│   ├── services/         # API services
-│   │   └── tmdbApi.js    # TMDB API integration
-│   ├── store/            # Redux store
-│   │   ├── store.js
-│   │   └── slices/       # Redux slices
-│   └── utils/            # Utilities
-│       ├── theme.js
-│       └── storage.js
-├── TMDB_SETUP.md         # TMDB API setup guide
-└── package.json
-```
-
-## Screens
-
-### Authentication
-- Splash Screen
-- Welcome Screen
-- Login Screen
-- Signup Screen
-- Profile Setup Screen
-
-### Main Tabs
-- Discover Tab
-- Search Tab
-- Favorites Tab
-- Profile Tab
-
-### Detail Screens
-- Movie Detail Screen
-- Watchlist Screen
-
-## State Management
-
-The app uses Redux Toolkit for state management with two main slices:
-- `authSlice`: Handles authentication and user data
-- `movieSlice`: Handles movies, favorites, and watchlist
-
-## Styling
-
-The app uses a consistent theme system with:
-- Color palette
-- Typography scales
-- Spacing system
-- Border radius values
-
-All defined in `src/utils/theme.js`
-
-## TMDB API Integration
-
-✅ **Completed**: The app now integrates with TMDB API for real movie data:
-- Trending movies in Discover screen
-- Real-time movie search
-- Full movie details with cast, genres, and trailers
-- High-quality movie posters and backdrops
-
-See [TMDB_SETUP.md](./TMDB_SETUP.md) for setup instructions.
-
-## Future Enhancements
-
-- Firebase/Supabase backend integration
-- Push notifications
-- Social sharing
-- Movie reviews and ratings
-- Advanced filtering and sorting
-- Trailer playback integration
-- Movie recommendations based on user preferences
 
 ## License
 
 MIT
-
