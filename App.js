@@ -7,9 +7,6 @@ import MainNavigator from './src/navigation/MainNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, ActivityIndicator } from 'react-native';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './src/services/firebase';
-import { getUserData } from './src/services/authService';
 import { loadPersistedState } from './src/store/persistence';
 import { login, logout, setOnboardingComplete } from './src/store/slices/authSlice';
 import { addToFavorites, addToWatchlist } from './src/store/slices/movieSlice';
@@ -20,49 +17,42 @@ const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const loadData = async () => {
       try {
-        if (firebaseUser) {
-          const userData = await getUserData(firebaseUser.uid);
-          if (userData) {
-            dispatch(
-              login({
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                name: userData.name || firebaseUser.displayName || firebaseUser.email?.split('@')[0],
-                favoriteGenres: userData.favoriteGenres || [],
-              })
-            );
-            if (userData.hasCompletedOnboarding) {
-              dispatch(setOnboardingComplete());
-            }
+        const persistedState = await loadPersistedState();
+
+        if (persistedState?.auth?.uid) {
+          dispatch(
+            login({
+              uid: persistedState.auth.uid,
+              email: persistedState.auth.email,
+              name: persistedState.auth.name,
+              favoriteGenres: persistedState.auth.favoriteGenres || [],
+            })
+          );
+          if (persistedState.auth.hasCompletedOnboarding) {
+            dispatch(setOnboardingComplete());
           }
         } else {
           dispatch(logout());
         }
 
-        const persistedState = await loadPersistedState();
-        if (persistedState) {
-          if (persistedState.movie.favorites?.length > 0) {
-            persistedState.movie.favorites.forEach((movie) => {
-              dispatch(addToFavorites(movie));
-            });
+        if (persistedState?.movie) {
+          if (Array.isArray(persistedState.movie.favorites)) {
+            persistedState.movie.favorites.forEach((movie) => dispatch(addToFavorites(movie)));
           }
-
-          if (persistedState.movie.watchlist?.length > 0) {
-            persistedState.movie.watchlist.forEach((movie) => {
-              dispatch(addToWatchlist(movie));
-            });
+          if (Array.isArray(persistedState.movie.watchlist)) {
+            persistedState.movie.watchlist.forEach((movie) => dispatch(addToWatchlist(movie)));
           }
         }
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('Error loading persisted state:', error);
       } finally {
         setIsLoading(false);
       }
-    });
+    };
 
-    return () => unsubscribe();
+    loadData();
   }, [dispatch]);
 
   if (isLoading) {
@@ -90,4 +80,3 @@ export default function App() {
     </Provider>
   );
 }
-

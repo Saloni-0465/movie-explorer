@@ -18,6 +18,7 @@ import ProfileScreen from '../screens/main/ProfileScreen';
 
 import MovieDetailScreen from '../screens/detail/MovieDetailScreen';
 import WatchlistScreen from '../screens/detail/WatchlistScreen';
+import TrailerWebViewScreen from '../screens/detail/TrailerWebViewScreen';
 import PrivacySecurityScreen from '../screens/main/PrivacySecurityScreen';
 
 const Stack = createNativeStackNavigator();
@@ -126,6 +127,14 @@ const MainNavigator = () => {
               headerStyle: { backgroundColor: colors.background },
               headerTintColor: colors.text,
               title: 'Movie Details',
+            }}
+          />
+          <Stack.Screen
+            name="TrailerWebView"
+            component={TrailerWebViewScreen}
+            options={{
+              headerShown: false,
+              presentation: 'fullScreenModal',
             }}
           />
           <Stack.Screen
